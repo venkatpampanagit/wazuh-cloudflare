@@ -2,31 +2,47 @@
 
 This repository describes how to deploy the Wazuh central components on Cloudflare Workers by composing Workers, Durable Objects, Containers, D1, R1 and KV services. The goal is to run a production-style multi-node stack aligned with the [official Wazuh Docker reference architecture](https://documentation.wazuh.com/current/deployment-options/docker/wazuh-container.html).
 
-## High-level topology (current state – Jan 2026)
+## Reference topology – single Worker, multi-container (Jan 2026)
 
 ```
-+-------------------------+         +-------------------------------+
-| Client / Browser / API  | <-----> | Cloudflare Worker (Hono API)  |
-+-------------------------+         +-------------------------------+
-                                              | | |
-                                              | | └───> KV (cluster configs, feature flags)
-                                              | └─────> D1 (cluster metadata, enrollment records)
-                                              └───────> R1 (hot log buffers & alert fan-out)
-
-                 +-------------------------------------------+
-                 | Durable Object namespace: WazuhContainers |
-                 +-------------------------------------------+
-                        |                 |               |
-           +------------+--+   +----------+--+   +--------+---+
-           | Manager Container | | Indexer Container | | Dashboard |
-           | (wazuh-manager)   | | (wazuh-indexer)   | | Container |
-           +-------------------+ +-------------------+ +------------+
-                 ^  ^  ^                  ^  ^  ^                ^
-                 |  |  |                  |  |  |                |
-                 |  |  |                  |  |  |                |
-         Durable schedulers       Log shipping via R1     TLS assets via
-         & health probes          search + D1 metadata    Certs generator
+                       (Admin / Dashboard users)
+        +-----------------------------------------------+
+        |  Browser / tenant portal / operator           |
+        +-----------------------------------------------+
+                               |
+                               v   (black path: dashboard/API flow)
+                 +-------------------------------+
+                 | Cloudflare Worker (Hono API)  |
+                 | - CF Access / JWT / SAML auth |
+                 | - Maps orgId -> Tenant DO     |
+                 +-------------------------------+
+                               |
+                               v
+                 +-------------------------------+
+                 | Durable Object per tenant     |
+                 | - Starts container set        |
+                 | - Routes private traffic      |
+                 +-------------------------------+
+                   |            |             |
+                   v            v             v
+            +-------------+ +-------------+ +----------------+
+            |wazuh-manager| |wazuh-indexer| |wazuh-dashboard |
+            |(Cloudflare  | |(Cloudflare  | |(Cloudflare     |
+            | container)  | | container)  | | container)     |
+            |ports 1514/5 | |port 9200    | |port 5601       |
+            +-------------+ +-------------+ +----------------+
+                   ^            ^             ^
+                   |            |             |
+             (blue path)        |             |
+        Agent traffic (mTLS)    |             |
+        from laptops/servers    |             |
+                                +-------------+
+                                   Dashboard queries OpenSearch
 ```
+
+- **Single entrypoint Worker:** All external clients—agents, administrators, dashboards—hit the same Cloudflare Worker hostname. The Worker authenticates requests (CF Access, JWT, SAML), maps each org/tenant ID to a Durable Object instance, and never talks to containers directly without going through that DO.
+- **Durable Object orchestration:** Each tenant gets one Durable Object derived from `BaseWazuhContainer`. The DO starts/stops the required Cloudflare Containers (Manager, Indexer, Dashboard, Certs) and exposes private `TcpPortHandle`s for the Worker to proxy traffic.
+- **Container roles:** Manager listens for agents (1514/1515) and publishes events; Indexer provides OpenSearch APIs (9200); Dashboard exposes Kibana/WS (5601). All three sit behind the Worker/DO combo, mirroring the reference diagram shared in the design deck (agent flow in blue, dashboard flow in black).
 
 ## Component responsibilities
 
