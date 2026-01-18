@@ -10,7 +10,7 @@ This repository describes how to deploy the Wazuh central components on Cloudfla
         |  Browser / tenant portal / operator           |
         +-----------------------------------------------+
                                |
-                               v   (black path: dashboard/API flow)
+                               v
                  +-------------------------------+
                  | Cloudflare Worker (Hono API)  |
                  | - CF Access / JWT / SAML auth |
@@ -33,7 +33,6 @@ This repository describes how to deploy the Wazuh central components on Cloudfla
             +-------------+ +-------------+ +----------------+
                    ^            ^             ^
                    |            |             |
-             (blue path)        |             |
         Agent traffic (mTLS)    |             |
         from laptops/servers    |             |
                                 +-------------+
@@ -42,7 +41,7 @@ This repository describes how to deploy the Wazuh central components on Cloudfla
 
 - **Single entrypoint Worker:** All external clients—agents, administrators, dashboards—hit the same Cloudflare Worker hostname. The Worker authenticates requests (CF Access, JWT, SAML), maps each org/tenant ID to a Durable Object instance, and never talks to containers directly without going through that DO.
 - **Durable Object orchestration:** Each tenant gets one Durable Object derived from `BaseWazuhContainer`. The DO starts/stops the required Cloudflare Containers (Manager, Indexer, Dashboard, Certs) and exposes private `TcpPortHandle`s for the Worker to proxy traffic.
-- **Container roles:** Manager listens for agents (1514/1515) and publishes events; Indexer provides OpenSearch APIs (9200); Dashboard exposes Kibana/WS (5601). All three sit behind the Worker/DO combo, mirroring the reference diagram shared in the design deck (agent flow in blue, dashboard flow in black).
+- **Container roles:** Manager listens for agent traffic (1514/1515) and publishes events; Indexer provides OpenSearch APIs (9200); Dashboard exposes Kibana/WS (5601). All three sit behind the Worker/DO combo, matching the single-entry design described above.
 
 ## Component responsibilities
 

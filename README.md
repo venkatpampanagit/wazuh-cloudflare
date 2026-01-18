@@ -23,8 +23,8 @@ Deploy the full Wazuh control plane (Manager, Indexer, Dashboard, Certs) on Clou
 
 A single Cloudflare Worker (Hono router) fronts every external request—agent telemetry, dashboard sessions, and administrative APIs. The Worker authenticates each call (CF Access, JWT, SAML), maps the tenant/org to a dedicated Durable Object, and proxies traffic through that DO. Each Durable Object spins up the required Cloudflare Containers (Manager, Indexer, Dashboard, Certs) and keeps their `TcpPortHandle`s private.
 
-- **Agent flow (blue)**: Agents talk MTLS directly to the Worker hostname; requests are routed to the Manager container (ports 1514/1515) via the tenant Durable Object.
-- **Dashboard/Admin flow (black)**: Browsers hit `/dashboard/*`; the Worker forwards through the same DO to the Dashboard container (port 5601), which issues queries to the Indexer container (port 9200).
+- **Agent flow**: Agents talk MTLS directly to the Worker hostname; requests are routed to the Manager container (ports 1514/1515) via the tenant Durable Object.
+- **Dashboard/Admin flow**: Browsers hit `/dashboard/*`; the Worker forwards through the same DO to the Dashboard container (port 5601), which issues queries to the Indexer container (port 9200).
 
 The updated multi-node diagram and narrative live in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
