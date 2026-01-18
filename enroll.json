@@ -1,0 +1,6 @@
+{
+  "agentId": "agent01",
+  "hostname": "test-host",
+  "version": "4.9.0",
+  "cluster": "primary"
+}

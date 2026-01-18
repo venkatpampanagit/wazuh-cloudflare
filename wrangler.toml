@@ -1,0 +1,82 @@
+name = "wazuh-cloudflare"
+main = "src/worker.ts"
+compatibility_date = "2024-12-18"
+workers_dev = true
+
+[observability]
+enabled = true
+head_sampling_rate = 1.0
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1.0
+invocation_logs = true
+persist = true
+
+# Wazuh container images (pulled from Docker Hub)
+[[containers]]
+class_name = "ManagerContainer"
+image = "./containers/manager/Dockerfile"
+instance_type = "standard-1"
+max_instances = 6
+
+[[containers]]
+class_name = "IndexerContainer"
+image = "./containers/indexer/Dockerfile"
+instance_type = "standard-1"
+max_instances = 6
+
+[[containers]]
+class_name = "DashboardContainer"
+image = "./containers/dashboard/Dockerfile"
+instance_type = "standard-1"
+max_instances = 4
+
+[[containers]]
+class_name = "CertsContainer"
+image = "./containers/certs/Dockerfile"
+instance_type = "standard-1"
+max_instances = 2
+
+# [[r1_databases]]
+# binding = "WAZUH_EVENTS"
+# database_name = "wazuh-events"
+# id = "<r1-database-id>"
+
+[[d1_databases]]
+binding = "WAZUH_META"
+database_name = "wazuh-meta"
+database_id = "317dc223-6cdd-4fb7-b8e5-e53f89e30616"
+
+[[kv_namespaces]]
+binding = "WAZUH_CLUSTER_CONFIG"
+id = "a6be3fc7f3174163a7421bf0eb478e5a"
+preview_id = "8deeae2c01a0416a87f226319c77e3fd"
+
+
+[durable_objects]
+bindings = [
+  { name = "WAZUH_MANAGER", class_name = "ManagerContainer" },
+  { name = "WAZUH_INDEXER", class_name = "IndexerContainer" },
+  { name = "WAZUH_DASHBOARD", class_name = "DashboardContainer" },
+  { name = "WAZUH_CERTS", class_name = "CertsContainer" },
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = [
+  "ManagerContainer",
+  "DashboardContainer",
+]
+
+[[migrations]]
+tag = "add-indexer-certs"
+new_sqlite_classes = [
+  "IndexerContainer",
+  "CertsContainer",
+]
+
+[vars]
+DEFAULT_CLUSTER = "local"
+CONTAINER_SLEEP_AFTER = "10m"
+CONTAINER_PORT_READY_TIMEOUT_MS = "600000"

@@ -1,0 +1,32 @@
+nodes:
+  manager:
+    - name: manager01
+      ip: 10.0.0.2
+      dns:
+        - manager01
+      
+  indexer:
+    - name: indexer01
+      ip: 10.0.0.3
+      dns:
+        - indexer01
+
+  dashboard:
+    - name: dashboard01
+      ip: 10.0.0.4
+      dns:
+        - dashboard01     
+  agent:
+    - name: agent01
+      ip: 10.0.0.5
+      dns:
+        - agent01
+    
+
+certs:
+  days: 365
+  country: IN
+  state: KA
+  locality: Bengaluru
+  organization: Nexarq
+  email: venkat@nexarq.ai

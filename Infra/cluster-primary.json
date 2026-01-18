@@ -1,0 +1,61 @@
+{
+  "name": "primary",
+  "version": "4.9.0",
+  "nodes": {
+       "managers": {
+      "count": 1,
+      "image": "wazuh/wazuh-manager",
+      "tag": "4.9.0",
+      "env": {
+        "WAZUH_API_BIND_ADDRESS": "0.0.0.0",
+        "INDEXER_URL": "https://wazuh-cloudflare.nfr-apjc-in-nexarq-tech.workers.dev/api/indexer",
+        "FILEBEAT_OUTPUT_HOSTS": "[\"https://wazuh-cloudflare.nfr-apjc-in-nexarq-tech.workers.dev/api/indexer\"]",
+        "API_BIND_ADDR": "0.0.0.0",
+        "API_BIND_PORT": "55000",
+        "WAZUH_CLUSTER_DISABLED": "true",
+        "DISABLE_INDEXER": "false",
+        "INDEXER_USERNAME": "admin",
+        "INDEXER_PASSWORD": "admin",
+        "LOG_LEVEL": "debug"
+ }
+    },
+    "indexers": {
+      "count": 1,
+      "image": "wazuh/wazuh-indexer",
+      "tag": "4.9.0",
+      "env": {
+        "network.host": "0.0.0.0",
+        "discovery.type": "single-node",
+        "OPENSEARCH_INITIAL_ADMIN_PASSWORD": "admin",
+        "OPENSEARCH_SECURITY_SSL_HTTP_ENABLED": "true",
+        "OPENSEARCH_SECURITY_SSL_HTTP_PEMCERT_FILEPATH": "/usr/share/wazuh-indexer/config/certs/indexer.pem",
+        "OPENSEARCH_SECURITY_SSL_HTTP_PEMKEY_FILEPATH": "/usr/share/wazuh-indexer/config/certs/indexer-key.pem",
+        "OPENSEARCH_SECURITY_SSL_HTTP_PEMTRUSTEDCAS_FILEPATH": "/usr/share/wazuh-indexer/config/certs/root-ca.pem",
+        "OPENSEARCH_SECURITY_SSL_TRANSPORT_ENABLED": "true",
+        "OPENSEARCH_SECURITY_SSL_TRANSPORT_PEMCERT_FILEPATH": "/usr/share/wazuh-indexer/config/certs/indexer.pem",
+        "OPENSEARCH_SECURITY_SSL_TRANSPORT_PEMKEY_FILEPATH": "/usr/share/wazuh-indexer/config/certs/indexer-key.pem",
+        "OPENSEARCH_SECURITY_SSL_TRANSPORT_PEMTRUSTEDCAS_FILEPATH": "/usr/share/wazuh-indexer/config/certs/root-ca.pem",
+        "OPENSEARCH_SECURITY_SSL_TRANSPORT_ENFORCE_HOSTNAME_VERIFICATION": "false",
+        "OPENSEARCH_SECURITY_ALLOW_UNSAFE_DEFAULTS": "true",
+        "OPENSEARCH_JAVA_OPTS": "-Xms320m -Xmx320m -XX:MaxDirectMemorySize=384m -Dopensearch.performance_analyzer.enabled=false"    }
+    },
+    "dashboards": {
+      "count": 1,
+      "image": "wazuh/wazuh-dashboard",
+      "tag": "4.9.0",
+      "env": {
+          "WAZUH_API_URL": "https://wazuh-manager-demo.in-nexarq.cftenant.com:55000",
+          "OPENSEARCH_HOSTS": "https://wazuh-cloudflare.nfr-apjc-in-nexarq-tech.workers.dev/api/indexer",
+          "OPENSEARCH_SSL_VERIFICATION_MODE": "none"
+      }
+    },
+    "certs":     { "count": 1, "image": "wazuh/wazuh-certs-generator", "tag": "0.0.1" }
+  },
+  "secrets": {
+    "adminUser": "admin",
+    "adminPassword": "admin",
+    "enrollmentKey": "K4d3sVqP9cLzgtzXsB63VGp0NSHcDPWJo1F/ycvw42U=",
+    "apiJwtSecret": "62ab9a5c08d32b9a902a919100f8d81629394fb519be59ce4bb0c28c503e4802a0dc8caf20da410d28d3b19e5d9c81cbb261094ec4303e10f28173634ca217bf",
+    "caPem": "-----BEGIN CERTIFICATE-----\nMIIDSzCCAjOgAwIBAgIUD7F9NdJwZMOhSNnl2H9CCN2OyUYwDQYJKoZIhvcNAQEL\nBQAwNTEOMAwGA1UECwwFV2F6dWgxDjAMBgNVBAoMBVdhenVoMRMwEQYDVQQHDApD\nYWxpZm9ybmlhMB4XDTI2MDExMDA4MTkwN1oXDTM2MDEwODA4MTkwN1owNTEOMAwG\nA1UECwwFV2F6dWgxDjAMBgNVBAoMBVdhenVoMRMwEQYDVQQHDApDYWxpZm9ybmlh\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvGP46ZXB1RWpjDHjtpT/\ndCrmDTqlcpeFwOoQm+G/RvlI1Uy0kuB1XHG47d2o3dsEC6S5qzDZjBimDEYOZWs6\n4xQdmZXeZcrqxWz1Bdqdq1oxFG+KCjQSkY1aw5Ce77UNhB5k6LKRNAya9aWktDn6\nWGcFdp812Hb+YAxv7l7yu2kIQwsvL2HdopD3/NoixqNgeUowjbhgUoUdlns83tge\nsph8aeFTtDToGxyjrz2/WKDXIGLgYVEisRlCw3Kv2p/fOSRcFdbjywlkC2IJLL3c\n+eMyUOps/a+d4mCf/H5Q/Z27de9b4I/Pa7q0hMWmArXL6zunZFzlhnQSR2BV+TAq\nmQIDAQABo1MwUTAdBgNVHQ4EFgQU0P1JdivGNzAV2qQxHRiOhTkQvjIwHwYDVR0j\nBBgwFoAU0P1JdivGNzAV2qQxHRiOhTkQvjIwDwYDVR0TAQH/BAUwAwEB/zANBgkq\nhkiG9w0BAQsFAAOCAQEAbPGoRLw4CpdvjCFcBBbso0QwpxAhfC4swwLoERivdBEN\n9xyWuaDpLWCkMeEnB4Jrzqv0Ci7Jo41k1uosYEKC8NyBH6/s9jWfuSVTjXrowa7M\nV7Ek38WnK+nDIpAFKJ2bGnr3TO5uwmIQIy/zMUWW2Q2F/BkwYabsislktGzI8Mv+\nd6qzR2mmw/O20TR8YqwFNw2veZEeTPgvGKZ/5zzf26wmwd2S3q40bLViENqsrELs\nw2CmrLmBlwWgnirzQhi+gghFqj5cios8acwHWRU5r2HQCzO7YdXxHCm9zqoY5XCa\nqvD2lu0xISDJpNzwNI2aHgarLHjyjRnUVfwF9t6x/w==\n-----END CERTIFICATE-----"
+  }
+}
